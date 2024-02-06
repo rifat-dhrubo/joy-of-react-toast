@@ -21,10 +21,9 @@ function reducer(state, action) {
         ...state,
         toasts: state.toasts.filter((t) => t.id !== action.toast.id),
       };
-    case "REMOVE_FIRST_TOAST":
+    case "RESET":
       return {
-        ...state,
-        toasts: state.toasts.slice(1), // remove first element from array
+        toasts: [], // remove first element from array
       };
     default:
       throw new Error(`Unknown action type: ${action.type}`);
@@ -35,6 +34,19 @@ function ToastProvider({ children }) {
   const [state, dispatch] = React.useReducer(reducer, INITIAL_STATE);
 
   const value = React.useMemo(() => ({ state, dispatch }), [state]);
+
+  React.useEffect(() => {
+    function handleEscape(e) {
+      if (e.key === "Escape") {
+        dispatch({ type: "RESET" });
+      }
+    }
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, []);
 
   return (
     <ToastContext.Provider value={value}>{children}</ToastContext.Provider>

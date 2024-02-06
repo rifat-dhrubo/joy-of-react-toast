@@ -3,21 +3,26 @@ import React from "react";
 import Button from "../Button";
 
 import styles from "./ToastPlayground.module.css";
-import Toast, { useToastContext } from "../Toast";
+
+import ToastShelf from "../ToastShelf";
+import { useToastContext } from "../ToastProvider";
 
 const VARIANT_OPTIONS = ["notice", "warning", "success", "error"];
 
 const INITIAL_ARG = {
-  message: "",
+  children: "",
   variant: VARIANT_OPTIONS.at(0),
 };
 
 function reducer(state, action) {
   switch (action.type) {
     case "message":
-      return { ...state, message: action.payload };
+      return { ...state, children: action.payload };
     case "variant":
       return { ...state, variant: action.payload };
+    case "reset":
+      return INITIAL_ARG;
+
     default:
       return state;
   }
@@ -25,6 +30,7 @@ function reducer(state, action) {
 
 function ToastPlayground() {
   const [state, dispatch] = React.useReducer(reducer, INITIAL_ARG);
+
   const toastContext = useToastContext();
 
   function handleTextChange(event) {
@@ -35,6 +41,15 @@ function ToastPlayground() {
     dispatch({ type: "variant", payload: event.target.value });
   }
 
+  function handleSubmit(event) {
+    event.preventDefault();
+    toastContext.dispatch({
+      type: "ADD_TOAST",
+      toast: state,
+    });
+    dispatch({ type: "reset" });
+  }
+
   return (
     <div className={styles.wrapper}>
       <header>
@@ -42,9 +57,9 @@ function ToastPlayground() {
         <h1>Toast Playground</h1>
       </header>
 
-      <Toast message={state.message} variant={state.variant} />
+      <ToastShelf />
 
-      <div className={styles.controlsWrapper}>
+      <form className={styles.controlsWrapper} onSubmit={handleSubmit}>
         <div className={styles.row}>
           <label
             htmlFor="message"
@@ -57,7 +72,7 @@ function ToastPlayground() {
             <textarea
               id="message"
               className={styles.messageInput}
-              value={state.message}
+              value={state.children}
               onChange={handleTextChange}
               placeholder="Enter a message..."
             />
@@ -89,12 +104,10 @@ function ToastPlayground() {
         <div className={styles.row}>
           <div className={styles.label} />
           <div className={`${styles.inputWrapper} ${styles.radioWrapper}`}>
-            <Button onClick={() => toastContext.setShowToast(true)}>
-              Pop Toast!
-            </Button>
+            <Button>Pop Toast!</Button>
           </div>
         </div>
-      </div>
+      </form>
     </div>
   );
 }

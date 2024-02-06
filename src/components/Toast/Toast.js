@@ -10,6 +10,7 @@ import {
 import VisuallyHidden from "../VisuallyHidden";
 
 import styles from "./Toast.module.css";
+import { useToastContext } from "../ToastProvider";
 
 const ICONS_BY_VARIANT = {
   notice: Info,
@@ -18,12 +19,22 @@ const ICONS_BY_VARIANT = {
   error: AlertOctagon,
 };
 
-function Toast({ variant, size = 24, message }) {
+function Toast({ variant, size = 24, children, id }) {
   const toastContext = useToastContext();
-  function hideToast() {
-    toastContext.setShowToast(false);
+  function hideToast(toastId) {
+    toastContext.dispatch({
+      type: "REMOVE_TOAST",
+      toast: {
+        id: toastId,
+      },
+    });
   }
-  if (message == null || message === "" || !toastContext.showToast) return;
+  if (
+    children == null ||
+    children === "" ||
+    toastContext.state.toasts.length === 0
+  )
+    return;
   if (ICONS_BY_VARIANT[variant] === undefined) {
     console.warn(`Unknown variant: ${variant}`);
   }
@@ -33,8 +44,8 @@ function Toast({ variant, size = 24, message }) {
       <div className={styles.iconContainer}>
         <Info size={size} />
       </div>
-      <p className={styles.content}>{message}</p>
-      <button className={styles.closeButton} onClick={hideToast}>
+      <p className={styles.content}>{children}</p>
+      <button className={styles.closeButton} onClick={() => hideToast(id)}>
         <X size={size} />
         <VisuallyHidden>Dismiss message</VisuallyHidden>
       </button>
@@ -43,22 +54,3 @@ function Toast({ variant, size = 24, message }) {
 }
 
 export default Toast;
-
-export const ToastContext = React.createContext({});
-
-export function ToastProvider({ children }) {
-  const [showToast, setShowToast] = React.useState(false);
-
-  const value = React.useMemo(() => ({ showToast, setShowToast }), [showToast]);
-  return (
-    <ToastContext.Provider value={value}>{children}</ToastContext.Provider>
-  );
-}
-
-export function useToastContext() {
-  const context = React.useContext(ToastContext);
-  if (context == null) {
-    throw new Error("useToastContext must be used within a ToastProvider");
-  }
-  return context;
-}

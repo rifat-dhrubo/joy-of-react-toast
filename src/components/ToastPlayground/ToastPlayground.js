@@ -3,11 +3,12 @@ import React from "react";
 import Button from "../Button";
 
 import styles from "./ToastPlayground.module.css";
+import Toast, { useToastContext } from "../Toast";
 
 const VARIANT_OPTIONS = ["notice", "warning", "success", "error"];
 
 const INITIAL_ARG = {
-  message: "Hello, world!",
+  message: "",
   variant: VARIANT_OPTIONS.at(0),
 };
 
@@ -24,6 +25,7 @@ function reducer(state, action) {
 
 function ToastPlayground() {
   const [state, dispatch] = React.useReducer(reducer, INITIAL_ARG);
+  const toastContext = useToastContext();
 
   function handleTextChange(event) {
     dispatch({ type: "message", payload: event.target.value });
@@ -39,6 +41,8 @@ function ToastPlayground() {
         <img alt="Cute toast mascot" src="/toast.png" />
         <h1>Toast Playground</h1>
       </header>
+
+      <Toast message={state.message} variant={state.variant} />
 
       <div className={styles.controlsWrapper}>
         <div className={styles.row}>
@@ -78,8 +82,6 @@ function ToastPlayground() {
                 />
                 {variant}
               </label>
-
-              {/* TODO Other Variant radio buttons here */}
             </div>
           ))}
         </div>
@@ -87,7 +89,9 @@ function ToastPlayground() {
         <div className={styles.row}>
           <div className={styles.label} />
           <div className={`${styles.inputWrapper} ${styles.radioWrapper}`}>
-            <Button onClick={() => console.log({ state })}>Pop Toast!</Button>
+            <Button onClick={() => toastContext.setShowToast(true)}>
+              Pop Toast!
+            </Button>
           </div>
         </div>
       </div>
